@@ -77,10 +77,22 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
     func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String : AnyObject]) {
         
+        let sortBy = filters["sortBy"] as? String
+        let isDeal = filters["isDeal"] as? Bool
         let categories = filters["categories"] as? [String]
-        Business.searchWithTerm(term: "Restaurants", sort: nil, categories: categories, deals: nil) { (businesses: [Business]?, error: Error?) -> Void in
+        Business.searchWithTerm(term: "Restaurants", sort: getSortType(sort: sortBy!), categories: categories, deals: isDeal) { (businesses: [Business]?, error: Error?) -> Void in
             self.businesses = businesses
             self.tableView.reloadData()
+        }
+    }
+    
+    func getSortType(sort: String) -> YelpSortMode {
+        if (sort == "Highest Rated") {
+            return YelpSortMode.highestRated
+        } else if (sort == "Distance") {
+            return YelpSortMode.distance
+        } else {
+            return YelpSortMode.bestMatched
         }
     }
 }

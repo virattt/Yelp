@@ -12,17 +12,31 @@ import UIKit
     @objc optional func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String: AnyObject])
 }
 
+enum Section {
+    case Deals(Bool)
+    case Categories([[String: String]])
+}
+
 class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate {
 
     @IBOutlet weak var tableView: UITableView!
     var categories: [[String: String]]!
+    var distances: [String]!
+    var sortBy: [String]!
+    var isDeal = false
+    
     var switchStates = [Int: Bool]()
+    var distance: String!
+    var sort: String!
+    
     weak var delegate: FiltersViewControllerDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         categories = yelpCategories()
+        distances = distanceList()
+        sortBy = sortList()
         
         tableView.dataSource = self
         tableView.delegate = self
@@ -54,26 +68,133 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
             filters["categories"] = selectedCategories as AnyObject?
         }
         
+        filters["distance"] = distance as AnyObject?
+        filters["sortBy"] = sort as AnyObject?
+        filters["isDeal"] = isDeal as AnyObject?
+        
+        
         delegate?.filtersViewController?(filtersViewController: self, didUpdateFilters: filters)
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let cell = tableView.cellForRow(at: indexPath) {
+            switch(indexPath.section) {
+                // Distance
+            case 1:
+                if (cell.accessoryType == .checkmark) {
+                    cell.accessoryType = .none
+                } else {
+                    distance = self.distances[indexPath.row]
+                    cell.accessoryType = .checkmark
+                }
+            case 2:
+                // Sort by
+                if (cell.accessoryType == .checkmark) {
+                    cell.accessoryType = .none
+                } else {
+                    cell.accessoryType = .checkmark
+                    sort = self.sortBy[indexPath.row]
+                }
+                
+            default: cell.accessoryType = .none
+            }
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        if let cell = tableView.cellForRow(at: indexPath) {
+            switch(indexPath.section) {
+            case 1: cell.accessoryType = .none
+            case 2: cell.accessoryType = .none
+            default: cell.accessoryType = .none
+            }
+        }
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 4
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch(section) {
+        case 0: return "Deals"
+        case 1: return "Distance"
+        case 2: return "Sort by"
+        case 3: return "Categories"
+        default: return "Blah"
+        }
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        switch(section) {
+        case 0: return 1
+        case 1: return 5
+        case 2: return 3
+        case 3: return yelpCategories().count
+        default: return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+
         
-        cell.switchLabel.text = categories[indexPath.row]["name"]
-        cell.delegate = self
-        cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
-        
-        return cell
+        switch(indexPath.section) {
+        case 0:
+            // Deals
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+            cell.switchLabel.text = "Offering a Deal"
+            cell.delegate = self
+            cell.onSwitch.isOn = isDeal
+            
+            return cell
+        case 1:
+            // Distance
+            let cell = tableView.dequeueReusableCell(withIdentifier: "CheckmarkCell", for: indexPath) as! CheckmarkCell
+            cell.checkmarkLabel.text = self.distances[indexPath.row]
+            
+            return cell
+        case 2:
+            // Sort by
+            let cell = tableView.dequeueReusableCell(withIdentifier: "CheckmarkCell", for: indexPath) as! CheckmarkCell
+            cell.checkmarkLabel.text = self.sortBy[indexPath.row]
+            
+            return cell
+        case 3:
+            // Categories
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+            cell.switchLabel.text = self.categories[indexPath.row]["name"]
+            cell.delegate = self
+            cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
+            
+            return cell
+        default:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+            cell.switchLabel.text = self.categories[indexPath.row]["name"]
+            cell.delegate = self
+            cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
+            
+            return cell
+        }
     }
     
     func switchCell(switchCell: SwitchCell, didChangeValue value: Bool) {
         let indexPath = tableView.indexPath(for: switchCell)!
-        switchStates[indexPath.row] = value
+        
+        if (indexPath.section == 0) {
+            isDeal = value
+        } else {
+            switchStates[indexPath.row] = value
+        }
+        
+    }
+    
+    func sortList() -> [String] {
+        return ["Best Match", "Highest Rated", "Distance"]
+    }
+    
+    func distanceList() -> [String] {
+        return ["Auto", "0.3 miles", "1 mile", "5 miles", "20 miles"]
     }
     
     func yelpCategories() -> [[String: String]] {
