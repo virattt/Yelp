@@ -29,8 +29,11 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     var switchStates = [Int: Bool]()
     var distance: String!
     var sort: String!
+    
     var isDistanceExpanded = false
     var isSortByExpanded = false
+    var isCategoriesExpanded = false;
+    var isSeeAllCellHidden = false;
     
     weak var delegate: FiltersViewControllerDelegate?
     
@@ -95,6 +98,13 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
                 isSortByExpanded = !isSortByExpanded
                 sort = self.sortBy[indexPath.row]
                 tableView.reloadData()
+            case 3:
+                // Categories
+                if (!isCategoriesExpanded && indexPath.row == 5) {
+                    isCategoriesExpanded = true
+                    isSeeAllCellHidden = true;
+                    tableView.reloadData()
+                }
             default: cell.accessoryType = .none
             }
         }
@@ -130,7 +140,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 0: return 1
         case 1: return isDistanceExpanded ? distanceList().count : 1
         case 2: return isSortByExpanded ? sortList().count : 1
-        case 3: return yelpCategories().count
+        case 3: return isCategoriesExpanded ? yelpCategories().count : 6
         default: return 0
         }
     }
@@ -140,6 +150,8 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 0:
             // Deals
             let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+            addBorderToCell(cell: cell)
+
             cell.switchLabel.text = "Offering a Deal"
             cell.delegate = self
             cell.onSwitch.isOn = isDeal
@@ -148,6 +160,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 1:
             // Distance
             let cell = tableView.dequeueReusableCell(withIdentifier: "CheckmarkCell", for: indexPath) as! CheckmarkCell
+            addBorderToCell(cell: cell)
             
             if (isDistanceExpanded) {
                 cell.checkmarkLabel.text = self.distances[indexPath.row]
@@ -159,6 +172,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 2:
             // Sort by
             let cell = tableView.dequeueReusableCell(withIdentifier: "CheckmarkCell", for: indexPath) as! CheckmarkCell
+            addBorderToCell(cell: cell)
             
             if (isSortByExpanded) {
                 cell.checkmarkLabel.text = self.sortBy[indexPath.row]
@@ -169,14 +183,30 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
             return cell
         case 3:
             // Categories
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-            cell.switchLabel.text = self.categories[indexPath.row]["name"]
-            cell.delegate = self
-            cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
-            
-            return cell
-        default:
+            if (isSortByExpanded) {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+                addBorderToCell(cell: cell)
+                cell.switchLabel.text = self.categories[indexPath.row]["name"]
+                cell.delegate = self
+                cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
+                return cell
+            } else {
+                if indexPath.row == 5 && !isSeeAllCellHidden {
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "SeeAllCell", for: indexPath) as! SeeAllCell
+                    addBorderToCell(cell: cell)
+                    return cell
+                } else {
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+                    addBorderToCell(cell: cell)
+                    cell.switchLabel.text = self.categories[indexPath.row]["name"]
+                    cell.delegate = self
+                    cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
+                    return cell
+                }
+            }
+                    default:
             let cell = tableView.dequeueReusableCell(withIdentifier: "SeeAllCell", for: indexPath) as! SeeAllCell
+            addBorderToCell(cell: cell)
             return cell
         }
     }
@@ -190,6 +220,11 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
             switchStates[indexPath.row] = value
         }
         
+    }
+    
+    func addBorderToCell(cell: UITableViewCell) {
+        cell.contentView.layer.borderColor = UIColor.black.cgColor
+        cell.contentView.layer.borderWidth = CGFloat(0.5)
     }
     
     func onSeeAllClicked() {
