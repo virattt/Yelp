@@ -29,7 +29,8 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     var switchStates = [Int: Bool]()
     var distance: String!
     var sort: String!
-    var isExpanded = false
+    var isDistanceExpanded = false
+    var isSortByExpanded = false
     
     weak var delegate: FiltersViewControllerDelegate?
     
@@ -38,7 +39,10 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         
         categories = yelpCategories()
         distances = distanceList()
+        distance = distances[0]
+        
         sortBy = sortList()
+        sort = sortBy[0]
         
         tableView.dataSource = self
         tableView.delegate = self
@@ -81,23 +85,16 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let cell = tableView.cellForRow(at: indexPath) {
             switch(indexPath.section) {
-                // Distance
             case 1:
-                if (cell.accessoryType == .checkmark) {
-                    cell.accessoryType = .none
-                } else {
-                    distance = self.distances[indexPath.row]
-                    cell.accessoryType = .checkmark
-                }
+                // Distance
+                isDistanceExpanded = !isDistanceExpanded
+                distance = self.distances[indexPath.row]
+                tableView.reloadData()
             case 2:
                 // Sort by
-                if (cell.accessoryType == .checkmark) {
-                    cell.accessoryType = .none
-                } else {
-                    cell.accessoryType = .checkmark
-                    sort = self.sortBy[indexPath.row]
-                }
-                
+                isSortByExpanded = !isSortByExpanded
+                sort = self.sortBy[indexPath.row]
+                tableView.reloadData()
             default: cell.accessoryType = .none
             }
         }
@@ -124,15 +121,15 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 1: return "Distance"
         case 2: return "Sort by"
         case 3: return "Categories"
-        default: return "Blah"
+        default: return ""
         }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch(section) {
         case 0: return 1
-        case 1: return 5
-        case 2: return 3
+        case 1: return isDistanceExpanded ? distanceList().count : 1
+        case 2: return isSortByExpanded ? sortList().count : 1
         case 3: return yelpCategories().count
         default: return 0
         }
@@ -151,13 +148,23 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 1:
             // Distance
             let cell = tableView.dequeueReusableCell(withIdentifier: "CheckmarkCell", for: indexPath) as! CheckmarkCell
-            cell.checkmarkLabel.text = self.distances[indexPath.row]
+            
+            if (isDistanceExpanded) {
+                cell.checkmarkLabel.text = self.distances[indexPath.row]
+            } else {
+                cell.checkmarkLabel.text = distance
+            }
             
             return cell
         case 2:
             // Sort by
             let cell = tableView.dequeueReusableCell(withIdentifier: "CheckmarkCell", for: indexPath) as! CheckmarkCell
-            cell.checkmarkLabel.text = self.sortBy[indexPath.row]
+            
+            if (isSortByExpanded) {
+                cell.checkmarkLabel.text = self.sortBy[indexPath.row]
+            } else {
+                cell.checkmarkLabel.text = sort
+            }
             
             return cell
         case 3:
