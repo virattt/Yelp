@@ -20,6 +20,7 @@ enum Section {
 class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate {
 
     @IBOutlet weak var tableView: UITableView!
+        
     var categories: [[String: String]]!
     var distances: [String]!
     var sortBy: [String]!
@@ -28,6 +29,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     var switchStates = [Int: Bool]()
     var distance: String!
     var sort: String!
+    var isExpanded = false
     
     weak var delegate: FiltersViewControllerDelegate?
     
@@ -131,14 +133,17 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 0: return 1
         case 1: return 5
         case 2: return 3
-        case 3: return yelpCategories().count
+        case 3:
+            if (isExpanded) {
+                return yelpCategories().count
+            } else {
+                return 5
+            }
         default: return 0
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-        
         switch(indexPath.section) {
         case 0:
             // Deals
@@ -169,11 +174,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
             
             return cell
         default:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-            cell.switchLabel.text = self.categories[indexPath.row]["name"]
-            cell.delegate = self
-            cell.onSwitch.isOn = switchStates[indexPath.row] ?? false
-            
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SeeAllCell", for: indexPath) as! SeeAllCell
             return cell
         }
     }
@@ -186,6 +187,10 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         } else {
             switchStates[indexPath.row] = value
         }
+        
+    }
+    
+    func onSeeAllClicked() {
         
     }
     
