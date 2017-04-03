@@ -35,8 +35,8 @@ The following **additional** features are implemented:
 
 Please list two areas of the assignment you'd like to **discuss further with your peers** during the next class (examples include better ways to implement something, how to extend your app in certain ways, etc):
 
-1.
-2.
+1. How to implement collapsable/expandable sections
+2. How to add a cell to a section, when it has a different UI/layout from its sibling cells (eg. "See All" cell within the "categories" section)
 
 ## Video Walkthrough
 
