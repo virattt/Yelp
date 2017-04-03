@@ -77,6 +77,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         let categories = filters["categories"] as? [String]
         Business.searchWithTerm(term: "Restaurants", sort: getSortType(sort: sortBy!), categories: categories, deals: isDeal) { (businesses: [Business]?, error: Error?) -> Void in
             self.businesses = businesses
+            self.filteredBusinesses = businesses
             self.tableView.reloadData()
         }
     }

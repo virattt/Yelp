@@ -133,12 +133,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         case 0: return 1
         case 1: return 5
         case 2: return 3
-        case 3:
-            if (isExpanded) {
-                return yelpCategories().count
-            } else {
-                return 5
-            }
+        case 3: return yelpCategories().count
         default: return 0
         }
     }
